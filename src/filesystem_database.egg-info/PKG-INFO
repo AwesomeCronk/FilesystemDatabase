@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: filesystem-database
-Version: 1.0.0
+Version: 1.0.1
 Summary: A relatively simple multilayered database built on top of standard file systems.
 Home-page: https://github.com/AwesomeCronk/filesystem-database
 Author: AwesomeCronk

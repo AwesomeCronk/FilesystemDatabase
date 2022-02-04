@@ -82,17 +82,19 @@ class dbNode():
         id = self.getKeyID(identifier)
         if id is None:
             raise Exception('Key {} does not exist'.format(repr(identifier)))
-        idHex = self.getHex(id)
-        with open(self.path.joinpath('key' + idHex), 'rb') as file:
-            return file.read()
+        else:
+            idHex = self.getHex(id)
+            with open(self.path.joinpath('key' + idHex), 'rb') as file:
+                return file.read()
 
     def set(self, identifier, value):
         id = self.getKeyID(identifier)
         if id is None:
             raise Exception('Key {} does not exist'.format(repr(identifier)))
-        idHex = self.getHex(id)
-        with open(self.path.joinpath('key' + idHex), 'wb') as file:
-            file.write(value)
+        else:
+            idHex = self.getHex(id)
+            with open(self.path.joinpath('key' + idHex), 'wb') as file:
+                file.write(value)
 
 
     def getNodeID(self, identifier):
@@ -156,10 +158,10 @@ class dbNode():
 
     def node(self, identifier):
         id = self.getNodeID(identifier)
-        idHex = self.getHex(identifier)
         if id is None:
             raise Exception('Node {} does not exist'.format(repr(identifier)))
         else:
+            idHex = self.getHex(id)
             return dbNode(self.path.joinpath('node' + idHex))
 
 
