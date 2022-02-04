@@ -22,10 +22,34 @@ Here `0` is the ID to give the key and `'exampleNode'` is the optional name to a
 
 To use nodes:
 ```python
-subNode = rootNode.mkNode(0, 'exampleNode') # Create a node under `rootNode`
+subNode = rootNode.mkNode(0, 'exampleNode') # Create a node (ID 0, name 'exampleNode') under `rootNode`
 rootNode.node(0)    # Get node 0 from `rootNode`
 rootNode.nodes      # A list containing node IDs
 rootNode.nodeNames  # A dictionary containing node names and the node IDs they correspond to
 
 ```
-`subNode` is a `dbNode` object whose contents are within `rootNode`. Here `0` is the ID to give the node (must not be taken) and `'exampleNode'` is the optional name to assign to the node. Neither the ID nor the name may be used for multiple nodes. `get` and `set` will accept either an integer for a key ID or a string for a key name. `get` and `set` will accept either an integer for a node ID or a string for a node name.
+`subNode` is a `dbNode` object whose contents are within `rootNode`. Here `0` is the ID to give the node (must not be taken) and `'exampleNode'` is the optional name to assign to the node. Neither the ID nor the name may be used for multiple nodes. `get` and `set` will accept either an integer for a key ID or a string for a key name.
+
+# Command Line Utility
+There is an included command line utility for easier management of databases. To run it, enter the following in a Python terminal:
+```python
+>>> from filesystem-database import cli
+>>> cli()
+```
+
+### Commands
+1. `load`
+2. `unload`
+3. `mk-key`
+4. `rm-key`
+5. `keys`
+6. `get`
+7. `set`
+8. `mk-node`
+9. `rm-node`
+10. `nodes`
+11. `node`
+12. `drop-node`
+13. `quit`
+
+Most of these are identical to the methods of a `dbNode`, except for a few. `load` and `unload` will load a `dbNode` from the supplied path. `node` 'enters' a node within the current node, setting it in the promp string. `drop-node` drops the current node and moves to its parent node. `quit` exits the CLI interface.

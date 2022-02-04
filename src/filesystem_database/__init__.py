@@ -1,11 +1,11 @@
-import pathlib, shutil, shlex
+import pathlib, shutil, shlex, traceback
 
 # Requires an empty directory or pre-existing database directory for the path
 class dbNode():
     hexLen = 4   # Length of key hex strings in bytes (two hex chars per byte)
 
     def __init__(self, path):
-        self.path = pathlib.Path(path)
+        self.path = pathlib.Path(path).expanduser().resolve()
         self.keys = []
         self.keynames = {}
         self.nodes = []
@@ -26,7 +26,7 @@ class dbNode():
         elif isinstance(identifier, str):
             return self.keyNames[identifier] if identifier in self.keyNames.keys() else None
         else:
-            raise Exception('Not a valid identifier')
+            raise Exception('Not a valid identifier: {}'.format(identifier))
 
     def getKeyName(self, identifier):
         if isinstance(identifier, str):
@@ -45,16 +45,18 @@ class dbNode():
             self.keys.append(int('0x' + file.name[3:].lower(), base=16))
 
         try:
-            with open(self.path.joinpath('keyNames'), 'r') as nameFile:
+            with open(self.path.joinpath('_keyNames'), 'r') as nameFile:
                 for entry in nameFile.read().split('\n'):
-                    name, idHex = entry.split(':')
-                    idInt = self.getInt(idHex)
-                    if idInt in self.keys:
-                        self.keyNames[name] = idInt
+                    if entry != '':
+                        name, idHex = entry.split(':')
+                        idInt = self.getInt(idHex)
+                        if idInt in self.keys:
+                            self.keyNames[name] = idInt
 
         except FileNotFoundError:
-            nameFile = open(self.path.joinpath('keyNames'), 'w')
+            nameFile = open(self.path.joinpath('_keyNames'), 'w')
             nameFile.close()
+
 
     def mkKey(self, id, name=None):
         if not self.getKeyID(id) is None:
@@ -118,16 +120,18 @@ class dbNode():
             self.nodes.append(int('0x' + folder.name[4:].lower(), base=16))
 
         try:
-            with open(self.path.joinpath('nodeNames'), 'r') as nameFile:
+            with open(self.path.joinpath('_nodeNames'), 'r') as nameFile:
                 for entry in nameFile.read().split('\n'):
-                    name, idHex = entry.split(':')
-                    idInt = self.getInt(idHex)
-                    if idInt in self.nodes:
-                        self.nodeNames[name] = idInt
+                    if entry != '':
+                        name, idHex = entry.split(':')
+                        idInt = self.getInt(idHex)
+                        if idInt in self.nodes:
+                            self.nodeNames[name] = idInt
 
         except FileNotFoundError:
-            nameFile = open(self.path.joinpath('nodeNames'), 'w')
+            nameFile = open(self.path.joinpath('_nodeNames'), 'w')
             nameFile.close()
+
 
     def mkNode(self, id, name=None):
         if not self.getNodeID(id) is None:
@@ -176,51 +180,44 @@ def cli():
             return int(string)
         except:
             return str(string)
-
+            
     def command_load(path):
-        global dbLoaded, nodes
+        nonlocal dbLoaded
+        nonlocal nodes
         if dbLoaded:
             raise Exception('Already have a database loaded')
         nodes = [(dbNode(path), 'dbRoot')]
         dbLoaded = True
 
     def command_unload():
-        global dbLoaded, nodes
+        nonlocal dbLoaded
+        nonlocal nodes
         if not dbLoaded:
             raise Exception('No database loaded')
         nodes = [(None, '(no node)')]
         dbLoaded = False
-    
+
+
     def command_keys():
         if not dbLoaded:
             raise Exception('No database loaded')
         print(nodes[-1][0].keys)
-    
-    def command_nodes():
+
+    def command_keyNames():
         if not dbLoaded:
             raise Exception('No database loaded')
-        print(nodes[-1][0].nodes)
-    
-    def command_mkKey(id):
+        print(nodes[-1][0].keyNames)
+
+    def command_mkKey(id, name=None):
         if not dbLoaded:
             raise Exception('No database loaded')
-        print(nodes[-1][0].mkKey(getIdentifier(id)))
-    
-    def command_mkNode(id):
-        if not dbLoaded:
-            raise Exception('No database loaded')
-        print(nodes[-1][0].mkNode(getIdentifier(id)))
-    
+        print(nodes[-1][0].mkKey(getIdentifier(id), name))
+
     def command_rmKey(id):
         if not dbLoaded:
             raise Exception('No database loaded')
         print(nodes[-1][0].rmKey(getIdentifier(id)))
     
-    def command_rmNode(id):
-        if not dbLoaded:
-            raise Exception('No database loaded')
-        print(nodes[-1][0].rmNode(getIdentifier(id)))
-
     def command_get(id):
         if not dbLoaded:
             raise Exception('No database loaded')
@@ -230,6 +227,27 @@ def cli():
         if not dbLoaded:
             raise Exception('No database loaded')
         nodes[-1][0].set(getIdentifier(id), value.encode())
+
+
+    def command_nodes():
+        if not dbLoaded:
+            raise Exception('No database loaded')
+        print(nodes[-1][0].nodes)
+
+    def command_nodeNames():
+        if not dbLoaded:
+            raise Exception('No database loaded')
+        print(nodes[-1][0].nodeNames)
+
+    def command_mkNode(id, name=None):
+        if not dbLoaded:
+            raise Exception('No database loaded')
+        print(nodes[-1][0].mkNode(getIdentifier(id), name))
+
+    def command_rmNode(id):
+        if not dbLoaded:
+            raise Exception('No database loaded')
+        print(nodes[-1][0].rmNode(getIdentifier(id)))
 
     def command_node(id, name):
         if not dbLoaded:
@@ -243,21 +261,24 @@ def cli():
             raise Exception('Can\'t drop root node')
         del(nodes[-1])
 
+
     def command_quit():
-        global runFlag
+        nonlocal runFlag
         runFlag = False
 
     commands = {
         'load': command_load,
         'unload': command_unload,
         'keys': command_keys,
-        'nodes': command_nodes,
+        'key-names': command_keyNames,
         'mk-key': command_mkKey,
-        'mk-node': command_mkNode,
         'rm-key': command_rmKey,
-        'rm-node': command_rmNode,
         'get': command_get,
         'set': command_set,
+        'nodes': command_nodes,
+        'node-names': command_nodeNames,
+        'mk-node': command_mkNode,
+        'rm-node': command_rmNode,
         'node': command_node,
         'drop-node': command_dropNode,
         'quit': command_quit
@@ -273,6 +294,7 @@ def cli():
         try:
             function(*args)
         except Exception as e:
+            print(''.join(traceback.format_tb(e.__traceback__)), end='')
             print('{}: {}'.format(type(e).__name__, e))
 
 if __name__ == '__main__':
