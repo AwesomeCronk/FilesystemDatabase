@@ -7,7 +7,7 @@ class dbNode():
     def __init__(self, path):
         self.path = pathlib.Path(path).expanduser().resolve()
         self.keys = []
-        self.keynames = {}
+        self.keyNames = {}
         self.nodes = []
         self.nodeNames = {}
 
@@ -25,6 +25,8 @@ class dbNode():
             return identifier if identifier in self.keys else None
         elif isinstance(identifier, str):
             return self.keyNames[identifier] if identifier in self.keyNames.keys() else None
+        elif identifier is None:
+            return None
         else:
             raise Exception('Not a valid identifier: {}'.format(identifier))
 
@@ -32,7 +34,7 @@ class dbNode():
         if isinstance(identifier, str):
             return identifier if identifier in self.keyNames.keys() else None
         elif isinstance(identifier, int):
-            return self.keyNames.keys[self.keyNames.values().index(identifier)] if identifier in self.keyNames.values() else None
+            return list(self.keyNames.keys())[list(self.keyNames.values()).index(identifier)] if identifier in self.keyNames.values() else None
         else:
             raise Exception('Not a valid identifier')
 
@@ -64,10 +66,13 @@ class dbNode():
         elif not self.getKeyID(name) is None:
             raise Exception('key {} exists'.format(name))
         else:
+            idHex = self.getHex(id)
             self.keys.append(id)
-            self.path.joinpath('key' + self.getHex(id)).touch()
+            self.path.joinpath('key' + idHex).touch()
             if not name is None:
                 self.keyNames[name] = id
+                with open(self.path.joinpath('_keyNames'), 'a') as nameFile:
+                    nameFile.write('{}:{}\n'.format(name, idHex))
 
     def rmKey(self, identifier):
         id = self.getKeyID(identifier)
@@ -75,8 +80,17 @@ class dbNode():
             raise Exception('Key {} does not exist'.format(repr(identifier)))
         else:
             idHex = self.getHex(id)
+            name = self.getKeyName(id)
             self.keys.remove(id)
             self.path.joinpath('key' + idHex).unlink()
+
+            # Refresh the namefile
+            if not name is None:
+                del self.keyNames[name]
+                with open(self.path.joinpath('_keyNames'), 'w') as nameFile:
+                    for name in self.keyNames.keys():
+                        nameFile.write('{}:{}\n'.format(name, self.getHex(self.keyNames[name])))
+
 
     def get(self, identifier):
         id = self.getKeyID(identifier)
@@ -102,6 +116,8 @@ class dbNode():
             return identifier if identifier in self.nodes else None
         elif isinstance(identifier, str):
             return self.nodeNames[identifier] if identifier in self.nodeNames.keys() else None
+        elif identifier is None:
+            return None
         else:
             raise Exception('Not a valid identifier')
 
@@ -109,7 +125,7 @@ class dbNode():
         if isinstance(identifier, str):
             return identifier if identifier in self.nodeNames.keys() else None
         elif isinstance(identifier, int):
-            return self.nodeNames.keys[self.nodeNames.values().index(identifier)] if identifier in self.nodeNames.values() else None
+            return list(self.nodeNames.keys())[list(self.nodeNames.values()).index(identifier)] if identifier in self.nodeNames.values() else None
         else:
             raise Exception('Not a valid identifier')
 
@@ -141,20 +157,30 @@ class dbNode():
         elif not self.getNodeID(name) is None:
             raise Exception('node {} exists'.format(name))
         else:
-            nodeHex = self.getHex(id)
+            idHex = self.getHex(id)
             self.nodes.append(id)
-            self.path.joinpath('node' + nodeHex).mkdir()
+            self.path.joinpath('node' + idHex).mkdir()
             if not name is None:
                 self.nodeNames[name] = id
+                with open(self.path.joinpath('_nodeNames'), 'a') as nameFile:
+                    nameFile.write('{}:{}\n'.format(name, idHex))
 
     def rmNode(self, identifier):
         id = self.getNodeID(identifier)
         if id is None:
             raise Exception('Key {} does not exist'.format(repr(identifier)))
         else:
-            nodeHex = self.getHex(identifier)
-            self.nodes.remove(identifier)
-            shutil.rmtree(str(self.path.joinpath('node' + nodeHex)))
+            idHex = self.getHex(id)
+            name = self.getNodeName(id)
+            self.nodes.remove(id)
+            shutil.rmtree(str(self.path.joinpath('node' + idHex)))
+
+            # Refresh the namefile
+            if not name is None:
+                del self.nodeNames[name]
+                with open(self.path.joinpath('_nodeNames'), 'w') as nameFile:
+                    for name in self.nodeNames.keys():
+                        nameFile.write('{}:{}\n'.format(name, self.getHex(self.nodeNames[name])))
 
     def node(self, identifier):
         id = self.getNodeID(identifier)

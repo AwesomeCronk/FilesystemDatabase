@@ -33,7 +33,7 @@ rootNode.nodeNames  # A dictionary containing node names and the node IDs they c
 # Command Line Utility
 There is an included command line utility for easier management of databases. To run it, enter the following in a Python terminal:
 ```python
->>> from filesystem-database import cli
+>>> from filesystem_database import cli
 >>> cli()
 ```
 
