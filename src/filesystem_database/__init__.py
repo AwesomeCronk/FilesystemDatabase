@@ -45,6 +45,7 @@ class dbNode():
         files = [object for object in self.path.glob('key*') if object.is_file()]
         for file in files:
             self.keys.append(int('0x' + file.name[3:].lower(), base=16))
+        self.keys.sort()
 
         try:
             with open(self.path.joinpath('_keyNames'), 'r') as nameFile:
@@ -136,6 +137,7 @@ class dbNode():
         folders = [object for object in self.path.glob('node*') if object.is_dir()]
         for folder in folders:
             self.nodes.append(int('0x' + folder.name[4:].lower(), base=16))
+        self.nodes.sort()
 
         try:
             with open(self.path.joinpath('_nodeNames'), 'r') as nameFile:
