@@ -208,9 +208,9 @@ class dbNode():
 # Create a database with no keys or nodes at the specified path
 def initDB(path, force=False):
     pathObj = pathlib.Path(path).expanduser().resolve()
-    print(pathObj)
+    
     # Clean out what may be there
-    if pathObj.exists():
+    if pathObj.exists:
         if force:
             if pathObj.is_dir():
                 shutil.rmtree(str(pathObj))     # Wipe it away
@@ -240,15 +240,13 @@ def cli():
     def command_create(path, force):
         if force in ('yes', 'no', 'y', 'n'):
             initDB(path, force in ('yes', 'y'))
-        else:
-            print('Invalid option for \'force\': "{}"'.format(force))
             
     def command_load(path):
         nonlocal dbLoaded
         nonlocal nodes
         if dbLoaded:
             raise Exception('Already have a database loaded')
-        nodes = [(dbNode(path), pathlib.Path(path).name)]
+        nodes = [(dbNode(path), 'dbRoot')]
         dbLoaded = True
 
     def command_unload():
@@ -311,10 +309,10 @@ def cli():
             raise Exception('No database loaded')
         print(nodes[-1][0].rmNode(getIdentifier(id)))
 
-    def command_node(id):
+    def command_node(id, name):
         if not dbLoaded:
             raise Exception('No database loaded')
-        nodes.append((nodes[-1][0].node(getIdentifier(id)), id))
+        nodes.append((nodes[-1][0].node(getIdentifier(id)), name))
 
     def command_dropNode():
         if not dbLoaded:
